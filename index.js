@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 const fs = require('fs');
-require('dotenv').config()
+const CONFIG_PATH = '/Users/hal/.config/clash/Feng.yaml'
+const GITHUB_TOKEN = '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'
+const GIST_ID = '493b1e462e2944922f85f74f8a1028e2'
 
-const path = process.env.CONFIG_PATH
 const urls = process.argv.slice(2)
 
 if (urls.length!==0) {
@@ -12,13 +13,13 @@ if (urls.length!==0) {
 }
 
 async function fetchRules () {
-  const { files } = await fetch(`https://api.github.com/gists/${process.env.GIST_ID}`)
+  const { files } = await fetch(`https://api.github.com/gists/${GIST_ID}`)
     .then(res => res.json())
   return files['clashrules.yaml'].content
 }
 
 function appendRulesToLocal (rules) {
-  fs.readFile(path, 'utf8', (err, data) => {
+  fs.readFile(CONFIG_PATH, 'utf8', (err, data) => {
     if (err) throw err;
 
     let modifiedContent
@@ -31,7 +32,7 @@ function appendRulesToLocal (rules) {
     } else {
       modifiedContent = contents[0]+`# custom\n${rules}\n# custom`+contents[2]
     }
-    fs.writeFile(path, modifiedContent, 'utf8', (err) => {
+    fs.writeFile(CONFIG_PATH, modifiedContent, 'utf8', (err) => {
       if (err) throw err;
       console.log('Content added successfully!');
     });
@@ -49,10 +50,10 @@ async function updateRulesAndAppendToLocal (urls) {
   const appendedRules = urls.map(url => `- DOMAIN-SUFFIX,${url},Proxy`).join('\n')
   const newRules = rules+'\n'+appendedRules
   console.log(newRules)
-  await fetch(`https://api.github.com/gists/${process.env.GIST_ID}`, {
+  await fetch(`https://api.github.com/gists/${GIST_ID}`, {
     method: 'PATCH',
     headers: {
-      Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      Authorization: `token ${GITHUB_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
